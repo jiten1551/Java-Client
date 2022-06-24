@@ -1,5 +1,15 @@
 # Java-Client
 
+```
+export AWS_ACCESS_KEY_ID=
+export AWS_SECRET_ACCESS_KEY=
+export AWS_SESSION_TOKEN=
+
+mvn install
+mvn compile exec:java -Dexec.mainClass="RESTClientTest"
+
+```
+
 1. step to repro issue: https://github.com/opensearch-project/OpenSearch/issues/3640
 
 2. signing sigv4 for streams https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-streaming.html

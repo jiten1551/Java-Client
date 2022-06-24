@@ -22,16 +22,19 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -92,26 +95,33 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         if (host != null) {
             signableRequest.setEndpoint(URI.create(host.toURI()));
         }
-        final HttpMethodName httpMethod =
-                HttpMethodName.fromValue(request.getRequestLine().getMethod());
+        final HttpMethodName httpMethod = HttpMethodName.fromValue(request.getRequestLine().getMethod());
         signableRequest.setHttpMethod(httpMethod);
         try {
             signableRequest.setResourcePath(uriBuilder.build().getRawPath());
         } catch (URISyntaxException e) {
             throw new IOException("Invalid URI", e);
         }
-//        long decodedContentLength = request.get
+
+        long contentLength = 0;
         if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntityEnclosingRequest httpEntityEnclosingRequest =
                     (HttpEntityEnclosingRequest) request;
-            if (httpEntityEnclosingRequest.getEntity() == null) {
-                signableRequest.setContent(new ByteArrayInputStream(new byte[0]));
-            } else {
+            if (httpEntityEnclosingRequest.getEntity() != null) {
+
+                GzipDecompressingEntity decompressedEntity = new GzipDecompressingEntity(httpEntityEnclosingRequest.getEntity());
+                contentLength = EntityUtils.toString(decompressedEntity).length();
+                System.out.println(EntityUtils.toString(decompressedEntity));
                 signableRequest.setContent(httpEntityEnclosingRequest.getEntity().getContent());
+                // signableRequest.setContent(new ByteArrayInputStream(EntityUtils.toString(decompressedEntity).getBytes()));
             }
         }
         signableRequest.setParameters(nvpToMapParams(uriBuilder.getQueryParams()));
-        signableRequest.setHeaders(headerArrayToMap(request.getAllHeaders()));
+        List<Header> headers = new ArrayList<>();
+        headers.addAll(Arrays.asList(request.getAllHeaders()));
+        headers.add(new BasicHeader("x-Amz-Decoded-Content-Length", String.valueOf(contentLength)));
+        // headers.add(new BasicHeader("x-amz-content-sha256", "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"));
+        signableRequest.setHeaders(headerArrayToMap(headers));
 
         // Sign it
         signer.sign(signableRequest, awsCredentialsProvider.getCredentials());
@@ -126,6 +136,10 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
                 basicHttpEntity.setContent(signableRequest.getContent());
                 httpEntityEnclosingRequest.setEntity(basicHttpEntity);
             }
+        }
+
+        for(Header header : request.getAllHeaders()) {
+            System.out.println(header.getName() + ": " + header.getValue());
         }
     }
 
@@ -147,7 +161,7 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
      * @param headers modeled Header objects
      * @return a Map of header entries
      */
-    private static Map<String, String> headerArrayToMap(final Header[] headers) {
+    private static Map<String, String> headerArrayToMap(List<Header> headers) {
         Map<String, String> headersMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (Header header : headers) {
             if (!skipHeader(header)) {
@@ -178,7 +192,6 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         for (Map.Entry<String, String> headerEntry : mapHeaders.entrySet()) {
             headers[i++] = new BasicHeader(headerEntry.getKey(), headerEntry.getValue());
         }
-//        headers[i++] = new BasicHeader("x-amz-decoded-content-length", "28");
         return headers;
     }
 }

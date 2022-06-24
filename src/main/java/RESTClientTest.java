@@ -24,12 +24,9 @@ import java.util.HashMap;
 
 public class RESTClientTest {
 
-    private static String host = "https://xxxxxx"; // put your own end-point
+    private static String host = "https://search-dblock-test-opensearch-21-tu5gqrjd4vg4qazjsu6bps5zsy.us-west-2.es.amazonaws.com"; // put your own end-point
     private static String serviceName = "es";
-    private static String region = "eu-west-1";
-
-
-
+    private static String region = "us-west-2";
 
     public static void main(String[] args) throws IOException {
         RestHighLevelClient searchClient = searchClient(serviceName, region);
