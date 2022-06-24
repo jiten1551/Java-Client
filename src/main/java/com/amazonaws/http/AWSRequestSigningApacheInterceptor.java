@@ -103,23 +103,31 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
             throw new IOException("Invalid URI", e);
         }
 
-        long contentLength = 0;
+        long contentLength = -1L;
         if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntityEnclosingRequest httpEntityEnclosingRequest =
                     (HttpEntityEnclosingRequest) request;
             if (httpEntityEnclosingRequest.getEntity() != null) {
 
-                GzipDecompressingEntity decompressedEntity = new GzipDecompressingEntity(httpEntityEnclosingRequest.getEntity());
-                contentLength = EntityUtils.toString(decompressedEntity).length();
-                System.out.println(EntityUtils.toString(decompressedEntity));
+                Header contentEncodingHeader = httpEntityEnclosingRequest.getFirstHeader("Content-Encoding");
+                if (contentEncodingHeader != null && contentEncodingHeader.getValue() == "gzip") {
+                    GzipDecompressingEntity decompressedEntity = new GzipDecompressingEntity(httpEntityEnclosingRequest.getEntity());
+                    contentLength = EntityUtils.toString(decompressedEntity).length();
+                    System.out.println(EntityUtils.toString(decompressedEntity));
+                    // signableRequest.setContent(new ByteArrayInputStream(EntityUtils.toString(decompressedEntity).getBytes()));
+                }
+
                 signableRequest.setContent(httpEntityEnclosingRequest.getEntity().getContent());
-                // signableRequest.setContent(new ByteArrayInputStream(EntityUtils.toString(decompressedEntity).getBytes()));
             }
         }
         signableRequest.setParameters(nvpToMapParams(uriBuilder.getQueryParams()));
         List<Header> headers = new ArrayList<>();
         headers.addAll(Arrays.asList(request.getAllHeaders()));
-        headers.add(new BasicHeader("x-Amz-Decoded-Content-Length", String.valueOf(contentLength)));
+
+        if (contentLength > 0) {
+            headers.add(new BasicHeader("x-Amz-Decoded-Content-Length", String.valueOf(contentLength)));
+        }
+
         // headers.add(new BasicHeader("x-amz-content-sha256", "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"));
         signableRequest.setHeaders(headerArrayToMap(headers));
 
@@ -164,22 +172,10 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
     private static Map<String, String> headerArrayToMap(List<Header> headers) {
         Map<String, String> headersMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (Header header : headers) {
-            if (!skipHeader(header)) {
-                headersMap.put(header.getName(), header.getValue());
-            }
+            headersMap.put(header.getName(), header.getValue());
         }
 //        headersMap.put("Content-Length", "44");
         return headersMap;
-    }
-
-    /**
-     * @param header header line to check
-     * @return true if the given header should be excluded when signing
-     */
-    private static boolean skipHeader(final Header header) {
-        return ("content-length".equalsIgnoreCase(header.getName())
-                && "0".equals(header.getValue())) // Strip Content-Length: 0
-                || "host".equalsIgnoreCase(header.getName());// Host comes from endpoint
     }
 
     /**
