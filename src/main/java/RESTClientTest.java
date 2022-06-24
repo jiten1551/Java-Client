@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 public class RESTClientTest {
 
-    private static String host = "https://search-jkjitend-iam2-as3xazdevwi64ofcb5zm67dl6q.eu-west-1.es-staging.amazonaws.com";
+    private static String host = "https://xxxxxx"; // put your own end-point
     private static String serviceName = "es";
     private static String region = "eu-west-1";
 
