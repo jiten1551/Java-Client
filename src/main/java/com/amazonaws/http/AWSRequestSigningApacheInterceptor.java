@@ -125,7 +125,7 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         headers.addAll(Arrays.asList(request.getAllHeaders()));
 
         if (contentLength > 0) {
-            headers.add(new BasicHeader("x-Amz-Decoded-Content-Length", String.valueOf(contentLength)));
+            headers.add(new BasicHeader("x-amz-decoded-content-length", Long.toString(contentLength)));
         }
 
         // headers.add(new BasicHeader("x-amz-content-sha256", "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"));
