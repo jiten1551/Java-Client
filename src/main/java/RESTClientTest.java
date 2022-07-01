@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 public class RESTClientTest {
 
-    private static String host = "https://xxxxxx"; // put your own end-point
+    private static String host = "https://xxxxx";
     private static String serviceName = "es";
     private static String region = "eu-west-1";
 
@@ -103,7 +103,8 @@ public class RESTClientTest {
         HttpRequestInterceptor interceptor = new AWSRequestSigningApacheInterceptor(serviceName, signer, new DefaultAWSCredentialsProviderChain());
         RestHighLevelClient restHighLevelClient = new RestHighLevelClient(RestClient.builder(HttpHost.create(host))
                 .setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(interceptor))
-                .setCompressionEnabled(true));
+                .setCompressionEnabled(false)
+                .setChunkedTransferEncodingEnabled(false));
 
         return restHighLevelClient;
     }

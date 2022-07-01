@@ -127,6 +127,10 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
                 httpEntityEnclosingRequest.setEntity(basicHttpEntity);
             }
         }
+        Map<String, String> headers = signableRequest.getHeaders();
+        headers.forEach((key, value) -> {
+            System.out.println(key+ " : " + value);
+        });
     }
 
     /**
