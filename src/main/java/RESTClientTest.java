@@ -1,6 +1,4 @@
-import com.amazonaws.auth.AWS4Signer;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.http.AWSRequestSigningApacheInterceptor;
+import com.amazonaws.http.AWSRequestSigningApacheInterceptorSDK;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequestInterceptor;
 import org.opensearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -17,6 +15,10 @@ import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.client.indices.CreateIndexRequest;
 import org.opensearch.client.indices.CreateIndexResponse;
 import org.opensearch.common.settings.Settings;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtV4aSigner;
+import software.amazon.awssdk.regions.Region;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -24,11 +26,9 @@ import java.util.HashMap;
 
 public class RESTClientTest {
 
-    private static String host = "https://xxxxx";
+    private static String host = "https://xxxxx"; // own search endpoint
     private static String serviceName = "es";
     private static String region = "eu-west-1";
-
-
 
 
     public static void main(String[] args) throws IOException {
@@ -96,11 +96,16 @@ public class RESTClientTest {
 
     // Adds the interceptor to the OpenSearch REST client
     public static RestHighLevelClient searchClient(String serviceName, String region) {
-        AWS4Signer signer = new AWS4Signer();
+       /* AWS4Signer signer = new AWS4Signer();
         signer.setServiceName(serviceName);
-        signer.setRegionName(region);
-
-        HttpRequestInterceptor interceptor = new AWSRequestSigningApacheInterceptor(serviceName, signer, new DefaultAWSCredentialsProviderChain());
+        signer.setRegionName(region);*/
+        HttpRequestInterceptor interceptor = new AWSRequestSigningApacheInterceptorSDK(
+                serviceName,
+                DefaultAwsCrtV4aSigner.create(),
+                DefaultCredentialsProvider.create(),
+                Region.EU_WEST_1
+        );
+        /*HttpRequestInterceptor interceptor = new AWSRequestSigningApacheInterceptor(serviceName, signer, new DefaultAWSCredentialsProviderChain());*/
         RestHighLevelClient restHighLevelClient = new RestHighLevelClient(RestClient.builder(HttpHost.create(host))
                 .setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(interceptor))
                 .setCompressionEnabled(false)

@@ -9,7 +9,8 @@
  * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  * and limitations under the License.
- */
+ *//*
+
 package com.amazonaws.http;
 
 import com.amazonaws.DefaultRequest;
@@ -38,32 +39,42 @@ import java.util.TreeMap;
 
 import static org.apache.http.protocol.HttpCoreContext.HTTP_TARGET_HOST;
 
+*/
 /**
  * An {@link HttpRequestInterceptor} that signs requests using any AWS {@link Signer}
  * and {@link AWSCredentialsProvider}.
- */
+ *//*
+
 public class AWSRequestSigningApacheInterceptor implements HttpRequestInterceptor {
-    /**
+    */
+/**
      * The service that we're connecting to. Technically not necessary.
      * Could be used by a future Signer, though.
-     */
+     *//*
+
     private final String service;
 
-    /**
+    */
+/**
      * The particular signer implementation.
-     */
+     *//*
+
     private final Signer signer;
 
-    /**
+    */
+/**
      * The source of AWS credentials for signing.
-     */
+     *//*
+
     private final AWSCredentialsProvider awsCredentialsProvider;
 
-    /**
+    */
+/**
      * @param service                service that we're connecting to
      * @param signer                 particular signer implementation
      * @param awsCredentialsProvider source of AWS credentials for signing
-     */
+     *//*
+
     public AWSRequestSigningApacheInterceptor(final String service,
                                               final Signer signer,
                                               final AWSCredentialsProvider awsCredentialsProvider) {
@@ -72,9 +83,11 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         this.awsCredentialsProvider = awsCredentialsProvider;
     }
 
-    /**
+    */
+/**
      * {@inheritDoc}
-     */
+     *//*
+
     @Override
     public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
@@ -133,10 +146,12 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         });
     }
 
-    /**
+    */
+/**
      * @param params list of HTTP query params as NameValuePairs
      * @return a multimap of HTTP query params
-     */
+     *//*
+
     private static Map<String, List<String>> nvpToMapParams(final List<NameValuePair> params) {
         Map<String, List<String>> parameterMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (NameValuePair nvp : params) {
@@ -147,10 +162,12 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         return parameterMap;
     }
 
-    /**
+    */
+/**
      * @param headers modeled Header objects
      * @return a Map of header entries
-     */
+     *//*
+
     private static Map<String, String> headerArrayToMap(final Header[] headers) {
         Map<String, String> headersMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (Header header : headers) {
@@ -162,20 +179,24 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         return headersMap;
     }
 
-    /**
+    */
+/**
      * @param header header line to check
      * @return true if the given header should be excluded when signing
-     */
+     *//*
+
     private static boolean skipHeader(final Header header) {
         return ("content-length".equalsIgnoreCase(header.getName())
                 && "0".equals(header.getValue())) // Strip Content-Length: 0
                 || "host".equalsIgnoreCase(header.getName());// Host comes from endpoint
     }
 
-    /**
+    */
+/**
      * @param mapHeaders Map of header entries
      * @return modeled Header objects
-     */
+     *//*
+
     private static Header[] mapToHeaderArray(final Map<String, String> mapHeaders) {
         Header[] headers = new Header[mapHeaders.size()];
         int i = 0;
@@ -186,3 +207,4 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         return headers;
     }
 }
+*/
